@@ -50,9 +50,7 @@ void setup() {
         mapBuffer[x+y*MAPWIDTH] = currentTileInBuffer;
       }
     }
-
-    // set player start
-    mapBuffer[playerPos.x+playerPos.y*MAPWIDTH].containsPlayer = 1;
+    updateMap();
 }
 
 void loop() {
