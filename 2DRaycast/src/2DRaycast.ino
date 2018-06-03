@@ -21,13 +21,14 @@ const uint8_t mapData[] PROGMEM =
   0,0,1,0,0,1,1,1,0,0,0,0
 };
 
-constexpr uint8_t playerSightDistance = 6;
+int8_t playerSightDistance = 2;
 MapTile mapBuffer[MAPWIDTH*MAPHEIGHT];
 Point playerPos = {5,5};
 
 void drawMap();
 void updateMap();
 void clearMap();
+void removeFogForPlayer();
 
 void setup() {
     // put your setup code here, to run once:
@@ -73,6 +74,16 @@ void loop() {
       }
       if (arduboy.pressed(RIGHT_BUTTON)){
         tempPlayerPos.x++;
+      }
+      if (arduboy.pressed(A_BUTTON)){
+        playerSightDistance--;
+        playerSightDistance = max(playerSightDistance, 0);
+        updateMap();
+      }
+      if (arduboy.pressed(B_BUTTON)){
+        playerSightDistance++;
+        playerSightDistance = min(playerSightDistance, 8);
+        updateMap();
       }
 
       // limit player pos
@@ -126,8 +137,8 @@ void updateMap(){
   // update players pos
   mapBuffer[playerPos.x+playerPos.y*MAPWIDTH].containsPlayer = 1;
 
-  // remove fog for player
-  // if i would just know how...
+  // handle sight
+  removeFogForPlayer();
 }
 
 void clearMap(){
@@ -137,4 +148,48 @@ void clearMap(){
       mapBuffer[x+y*MAPWIDTH].containsPlayer = 0;
     }
   }
+}
+
+void removeFogForPlayer(){
+  auto castRay = [](int8_t xEnd, int8_t yEnd) {
+
+    int8_t x0 = playerPos.x;
+    int8_t y0 = playerPos.y;
+    int8_t dx =  abs(xEnd-x0), sx = x0<xEnd ? 1 : -1;
+    int8_t dy = -abs(yEnd-y0), sy = y0<yEnd ? 1 : -1;
+    int8_t err = dx+dy, e2; /* error value e_xy */
+
+    while(true){
+
+      // check for bounds
+      if (x0 >= 0 && y0 >= 0 && x0 < MAPWIDTH && y0 < MAPHEIGHT) {
+        mapBuffer[ x0+y0*MAPWIDTH].drawFog = 0;
+      }
+
+      // check for end
+      if ( x0==xEnd && y0==yEnd) break;
+
+      e2 = 2*err;
+      if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
+      if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
+    }
+  };
+
+  // bresenham circle algorithm
+  int8_t r = playerSightDistance;
+  int8_t x = -r;
+  int8_t y = 0;
+  int8_t err = 2-2*r; /* II. Quadrant */
+  do {
+
+     castRay(playerPos.x-x, playerPos.y+y); // 1st quadrant
+     castRay(playerPos.x-y, playerPos.y-x); // 2nd quadrant
+     castRay(playerPos.x+x, playerPos.y-y); // 3rd quadrant
+     castRay(playerPos.x+y, playerPos.y+x); // 4th quadrant
+
+     // continue with bresenham
+     r = err;
+     if (r <= y) err += ++y*2+1;
+     if (r > x || err > y) err += ++x*2+1;
+  } while (x < 0);
 }
