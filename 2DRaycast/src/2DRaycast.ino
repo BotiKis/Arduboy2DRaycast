@@ -157,13 +157,13 @@ void removeFogForPlayer(){
     int8_t y0 = playerPos.y;
     int8_t dx =  abs(xEnd-x0), sx = x0<xEnd ? 1 : -1;
     int8_t dy = -abs(yEnd-y0), sy = y0<yEnd ? 1 : -1;
-    int8_t err = dx+dy, e2; /* error value e_xy */
+    int8_t err = dx+dy, e2;
 
     while(true){
 
       e2 = 2*err;
-      if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
-      if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
+      if (e2 >= dy) { err += dy; x0 += sx; }
+      if (e2 <= dx) { err += dx; y0 += sy; }
 
       // check for bounds
       if (x0 >= 0 && y0 >= 0 && x0 < MAPWIDTH && y0 < MAPHEIGHT) {
