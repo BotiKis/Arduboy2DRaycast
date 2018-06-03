@@ -161,17 +161,20 @@ void removeFogForPlayer(){
 
     while(true){
 
+      e2 = 2*err;
+      if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
+      if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
+
       // check for bounds
       if (x0 >= 0 && y0 >= 0 && x0 < MAPWIDTH && y0 < MAPHEIGHT) {
-        mapBuffer[ x0+y0*MAPWIDTH].drawFog = 0;
+        mapBuffer[x0+y0*MAPWIDTH].drawFog = 0;
       }
 
       // check for end
       if ( x0==xEnd && y0==yEnd) break;
 
-      e2 = 2*err;
-      if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
-      if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
+      // check if there is an Obstacle
+      if (mapBuffer[ x0+y0*MAPWIDTH].tileID == TileObstacle) break;
     }
   };
 
