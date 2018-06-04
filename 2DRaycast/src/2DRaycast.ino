@@ -11,13 +11,13 @@ constexpr uint8_t TILESIZE = 8;
 
 const uint8_t mapData[] PROGMEM =
 {
-  0,0,0,0,0,0,0,0,0,1,0,0,
-  0,0,0,0,0,0,0,0,1,0,0,0,
-  0,0,0,0,0,0,0,1,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,1,1,1,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,1,0,0,
+  0,1,0,0,0,1,0,0,0,0,0,0,
+  0,0,0,1,0,0,0,0,1,1,0,0,
+  0,1,1,1,0,1,0,0,1,1,0,0,
+  0,1,0,0,0,1,0,0,0,0,0,0,
+  0,1,0,1,1,1,0,1,1,1,1,0,
+  0,1,0,0,0,0,0,0,0,0,1,0,
+  0,1,0,1,1,1,1,1,0,1,1,0,
   0,0,0,0,0,0,1,1,0,0,0,0
 };
 
@@ -156,6 +156,7 @@ void removeFogForPlayer(){
     int8_t dx =  abs(xEnd-x0), sx = x0<xEnd ? 1 : -1;
     int8_t dy = -abs(yEnd-y0), sy = y0<yEnd ? 1 : -1;
     int8_t err = dx+dy, e2;
+    int8_t r = (dx-dy)/2;
 
     while(true){
 
@@ -163,8 +164,11 @@ void removeFogForPlayer(){
       if (e2 >= dy) { err += dy; x0 += sx; }
       if (e2 <= dx) { err += dx; y0 += sy; }
 
+      // calc current disctance
+      uint8_t cd = abs(playerPos.x-x0) + abs(playerPos.y-y0);
+
       // check for bounds
-      if (x0 >= 0 && y0 >= 0 && x0 < MAPWIDTH && y0 < MAPHEIGHT) {
+      if (x0 >= 0 && y0 >= 0 && x0 < MAPWIDTH && y0 < MAPHEIGHT && cd <= r) {
         mapBuffer[x0+y0*MAPWIDTH].drawFog = 0;
       }
 
@@ -177,7 +181,7 @@ void removeFogForPlayer(){
   };
 
   // bresenham circle algorithm
-  int8_t r = playerSightDistance;
+  int8_t r = playerSightDistance*2;
   int8_t x = -r;
   int8_t y = 0;
   int8_t err = 2-2*r; /* II. Quadrant */
