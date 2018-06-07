@@ -6,7 +6,8 @@
 constexpr uint8_t TilePlanes = 0;
 constexpr uint8_t TileObstacle = 1;
 constexpr uint8_t TilePlayer = 2;
-constexpr uint8_t TileFog = 3;
+constexpr uint8_t TileMarker = 3;
+constexpr uint8_t TileFog = 4;
 
 const unsigned char PROGMEM tilesheet[] =
 {
@@ -20,6 +21,8 @@ const unsigned char PROGMEM tilesheet[] =
 0xff, 0xe7, 0x3b, 0xc0, 0xc0, 0x3b, 0xe7, 0xff,
 // TILE 03
 0xbb, 0x77, 0xee, 0xdd, 0xbb, 0x77, 0xee, 0xdd,
+// TILE 04
+0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55,
 };
 
 #endif
