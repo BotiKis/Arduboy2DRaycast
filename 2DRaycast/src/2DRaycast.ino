@@ -29,6 +29,8 @@ void drawMap();
 void updateMap();
 void clearMap();
 void removeFogForPlayer();
+bool isColliding(Point pos);
+void markPosition(Point pos, uint8_t distance) ;
 
 void setup() {
     // put your setup code here, to run once:
@@ -91,7 +93,7 @@ void loop() {
       tempPlayerPos.y = max(tempPlayerPos.y, 0);
 
       // check if map needs to be updated
-      if (tempPlayerPos.x != playerPos.x || tempPlayerPos.y != playerPos.y) {
+      if ((tempPlayerPos.x != playerPos.x || tempPlayerPos.y != playerPos.y) && !isColliding(tempPlayerPos)) {
         playerPos = tempPlayerPos;
         updateMap();
       }
@@ -119,6 +121,11 @@ void drawMap(){
         sprites.drawErase(x*TILESIZE+xOffset, y*TILESIZE, tilesheet, TileFog);
       }
 
+      // draw marker
+      if (currentTileInBuffer.drawMarker == 1) {
+        sprites.drawErase(x*TILESIZE+xOffset, y*TILESIZE, tilesheet, TileMarker);
+      }
+
       // draw player
       if (currentTileInBuffer.containsPlayer == 1) {
         sprites.drawOverwrite(x*TILESIZE+xOffset, y*TILESIZE, tilesheet, TilePlayer);
@@ -137,6 +144,9 @@ void updateMap(){
 
   // handle sight
   removeFogForPlayer();
+
+  // handle movability
+  markPosition(playerPos, playerSightDistance);
 }
 
 void clearMap(){
@@ -144,6 +154,7 @@ void clearMap(){
     for (uint8_t x = 0; x < MAPWIDTH; x++) {
       mapBuffer[x+y*MAPWIDTH].drawFog = 1;
       mapBuffer[x+y*MAPWIDTH].containsPlayer = 0;
+      mapBuffer[x+y*MAPWIDTH].drawMarker = 0;
     }
   }
 }
@@ -197,4 +208,37 @@ void removeFogForPlayer(){
      if (r <= y) err += ++y*2+1;
      if (r > x || err > y) err += ++x*2+1;
   } while (x < 0);
+}
+
+bool isColliding(Point pos){
+  // get maptile
+  MapTile tile = mapBuffer[pos.x+pos.y*MAPWIDTH];
+
+  return tile.tileID == 1;
+}
+
+void markPosition(Point pos, uint8_t distance) {
+
+  // get maptile
+  MapTile tile = mapBuffer[pos.x+pos.y*MAPWIDTH];
+
+  // check if already marked
+  //if (tile.drawMarker == 1) return;
+
+  // check if it's an obstacle
+  if (tile.tileID == 1) return;
+
+  // mark tile
+  mapBuffer[pos.x+pos.y*MAPWIDTH].drawMarker = 1;
+
+  // check distance
+  if (distance <= 1) return;
+
+  // call recursively
+  if (pos.x > 0)            markPosition({pos.x-1,pos.y}, distance-1);
+  if (pos.x < MAPWIDTH-1)   markPosition({pos.x+1,pos.y}, distance-1);
+  if (pos.y > 0)            markPosition({pos.x,pos.y-1}, distance-1);
+  if (pos.y < MAPHEIGHT-1)  markPosition({pos.x,pos.y+1}, distance-1);
+
+  return;
 }
